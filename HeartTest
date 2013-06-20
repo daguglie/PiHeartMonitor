@@ -1,0 +1,48 @@
+import time
+from collections import deque
+import RPi.GPIO as GPIO
+
+heartQueue = deque()
+
+GPIO.setmode(GPIO.BMC)
+GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP) #change the number value to match the input GPIO pin. also may need to change to PUD_DOWN if it is pulldown
+timeHeart=time.time()
+startTime = time.time()
+GPIO.add_event_detected(12, GPIO.FALLING, callback=heartCallBack)
+
+#saveFileName = "RaspData" #name of the data file
+#saveFilePath = 'C:\RPOM' #location of data file
+#fullName = os.path.join(saveFilePath, saveFileName+".om")#full path and name of data file
+#lcd = None
+
+def heartCallBack():
+  global timeHeart
+	#timeNow = time.time
+	timeNow = time.time()
+	if(timeNow - timeHeart) >= 0.3: #debounce
+		heartQueue.append(timeNow - timeHeart) #adds time between heart beats to the end of the queue
+		WriteModule(str(timeNow - timeHeart)+'\n')
+		if len(heartQueue) > 10:
+			heartQueue.popleft() #removes first item in queue if the count is at ten
+		#record to Pi data
+	timeHeart = timeNow #resets heart beat clock to now in preperation for next beat time diffrence
+	
+def heartDisplay():
+	#lcd.setcursor(0,1) #set cursor to second line *I believe*
+	count = 0 #gets total number of measurements in heart queue in case less then 10
+	totalBeatTime = 0 #gets the total amount of time over the last 10 of beats
+	for elm in heartQue: #loop through to fill up counters
+		count+= 1
+		totalBeatTime += elm
+	beatPerMin = 60/(totalBeatTime/count) #math equation to find average time over last 10 beats then divides 60 by that number to find BPM
+	#lcd.message(beatPerMin)
+	
+def WriteModule(infoToWrite):
+	#dataFile = open(fullName, "a")#open the data file for writing
+	dataFile = open('RaspHeartData.txt','a')
+	dataFile.write(infoToWrite)
+	dataFile.close()
+	
+while True:
+	if (time.time() - startTime) >  20:
+		exit()
