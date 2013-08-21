@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 
 heartQueue = deque()
 
-GPIO.setmode(GPIO.BMC)
+GPIO.setmode(GPIO.BCM)
 GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP) #change the number value to match the input GPIO pin. also may need to change to PUD_DOWN if it is pulldown
 timeHeart=time.time()
 startTime = time.time()
